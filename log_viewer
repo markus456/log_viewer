@@ -15,6 +15,7 @@ total_lines = count_lines(sys.argv[1])
 keys = []
 keypos = 0
 linepos = 0
+highlight = ""
 
 
 def warning(win, msg):
@@ -90,7 +91,9 @@ def read_string(win, title):
 
 
 def main(win):
-  global keypos, keys, linepos
+  curses.start_color()
+  curses.use_default_colors()
+  global keypos, keys, linepos, highlight
   y, x = win.getmaxyx()
   win.clear()
   linenum = 0
@@ -141,7 +144,10 @@ def main(win):
     for l in lines[linepos:linepos + MAX_LINES]:
       if row + 1 >= y:
         break
-      win.addnstr(row, 0, current_log[l], x - 1)
+      if highlight and highlight in current_log[l]:
+        win.addnstr(row, 0, current_log[l], x - 1, curses.A_UNDERLINE)
+      else:
+        win.addnstr(row, 0, current_log[l], x - 1)
       row += 1
 
     win.refresh()
@@ -193,6 +199,7 @@ def main(win):
     elif k == "f":
       pattern = read_string(win, "Match: ")
       set_match(win, pattern)
+      highlight = pattern
     elif k == "x":
       pattern = read_string(win, "Exclude: ")
       set_exclude(win, pattern)
@@ -204,6 +211,7 @@ def main(win):
         warning(win, f"Not a number ({e}): {val}")
     elif k == "r":
       set_keys([])
+      highlight = ""
     elif k == "g":
       interleave = not interleave
     elif k == "/":
