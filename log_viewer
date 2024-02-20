@@ -147,7 +147,7 @@ def main(win):
     win.erase()
     win.addstr(0, 0, "Press 'q' to quit, 'h' for help. (" + k + ") Interleave: " + ("ON" if interleave else "OFF"))
     win.addstr(1, 0, f"Sessions: {len(keys)} Current: " + ("Global" if session_id == "-1" else session_id))
-    if interleave:
+    if interleave and global_id in logs:
       current_log = logs[keys[keypos]] | logs[global_id]
     else:
       current_log = logs[keys[keypos]]
