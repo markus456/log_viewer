@@ -172,8 +172,10 @@ def main(win):
     k = win.getkey()
 
     if k == "h":
-      helps = ["Right:     Next session",
-               "Left:      Previous session",
+      helps = ["→:         Next session",
+               "←:         Previous session",
+               "Shift + →: Go forward 100 sessions",
+               "Shift + ←: Go back 100 sessions",
                "Up:        Scroll up",
                "Down:      Scroll down",
                "Page up:   Move up one page",
@@ -199,13 +201,13 @@ def main(win):
       keypos = max(keypos - 1, 0)
     elif k == "KEY_SLEFT":
       linepos = 0
-      keypos = max(keypos - 10, 0)
+      keypos = max(keypos - 100, 0)
     elif k == "KEY_RIGHT":
       linepos = 0
       keypos = max(min(keypos + 1, len(keys) - 1), 0)
     elif k == "KEY_SRIGHT":
       linepos = 0
-      keypos = max(min(keypos + 10, len(keys) - 1), 0)
+      keypos = max(min(keypos + 100, len(keys) - 1), 0)
     elif k == "KEY_DOWN":
       linepos = min(linepos + 1, len(current_log) - 1 - 40)
     elif k == "KEY_UP":
@@ -214,6 +216,10 @@ def main(win):
         linepos = min(linepos + y, len(current_log) - 1 - 40)
     elif k == "KEY_PPAGE":
         linepos = max(linepos - y, 0)
+    elif k == "KEY_HOME":
+        linepos = 0
+    elif k == "KEY_END":
+        linepos = len(current_log) - 1 - 40
     elif k == "f":
       pattern = read_string(win, "Match: ")
       set_match(win, pattern)
