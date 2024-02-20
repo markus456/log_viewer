@@ -65,6 +65,18 @@ def set_exclude(win, pattern):
     warning(win, "No match")
 
 
+def set_sessions(win, sessions):
+  global keys, logs
+  newkeys = []
+  for k in keys:
+    if k in sessions:
+      newkeys.append(k)
+  if len(newkeys) > 0:
+    set_keys(newkeys)
+  else:
+    warning(win, "No sessions found")
+
+
 def set_min_lines(win, lines):
   global keys, logs
   newkeys = []
@@ -223,17 +235,8 @@ def main(win):
     elif k == "g":
       interleave = not interleave
     elif k == "/":
-      win.clear()
-      k = ""
-      findstr = ""
-      while k != "\n":
-        findstr += k
-        win.addstr(0, 0, "Find session: " + findstr)
-        win.refresh()
-        k = win.getkey()
-      if findstr in keys:
-        keypos = keys.index(findstr)
+      sessions = read_string(win, "Find sessions: ")
+      set_sessions(win, [s.strip() for s in sessions.split(",")])
 
-      k = "/"
 
 curses.wrapper(main)
