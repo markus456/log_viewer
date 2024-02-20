@@ -19,6 +19,7 @@ highlight = ""
 
 
 def warning(win, msg):
+  win.erase()
   win.addstr(0, 0, msg)
   win.addstr(2, 4, "Press any key to continue")
   win.refresh()
@@ -79,7 +80,7 @@ def read_string(win, title):
   rv = ""
   k = ""
   while k != "\n":
-    win.clear()
+    win.erase()
     if k == "KEY_BACKSPACE":
       rv = rv[:-1]
     else:
@@ -95,7 +96,7 @@ def main(win):
   curses.use_default_colors()
   global keypos, keys, linepos, highlight
   y, x = win.getmaxyx()
-  win.clear()
+  win.erase()
   linenum = 0
   real_linenum = 0
   update_size = int(total_lines / 100)
@@ -130,7 +131,7 @@ def main(win):
 
   while k not in ["q"]:
     session_id = keys[keypos]
-    win.clear()
+    win.erase()
     win.addstr(0, 0, "Press 'q' to quit, 'h' for help. (" + k + ") Interleave: " + ("ON" if interleave else "OFF"))
     win.addstr(1, 0, f"Sessions: {len(keys)} Current: " + ("Global" if session_id == "-1" else session_id))
     if interleave:
@@ -171,7 +172,7 @@ def main(win):
                "",
                "Press any key to close the help window."]
 
-      win.clear()
+      win.erase()
       for i in range(0, len(helps)):
         win.addstr(i, 0, helps[i])
       win.refresh()
