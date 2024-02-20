@@ -16,6 +16,7 @@ keys = []
 keypos = 0
 linepos = 0
 highlight = ""
+only_highlight = False
 
 
 def warning(win, msg):
@@ -94,7 +95,7 @@ def read_string(win, title):
 def main(win):
   curses.start_color()
   curses.use_default_colors()
-  global keypos, keys, linepos, highlight
+  global keypos, keys, linepos, highlight, only_highlight
   y, x = win.getmaxyx()
   win.erase()
   linenum = 0
@@ -142,14 +143,17 @@ def main(win):
     lines.sort()
     row = 2
 
-    for l in lines[linepos:linepos + MAX_LINES]:
+    for l in lines[linepos:]:
       if row + 1 >= y:
         break
       if highlight and highlight in current_log[l]:
         win.addnstr(row, 0, current_log[l], x - 1, curses.A_UNDERLINE)
-      else:
+        row += 1
+      elif not only_highlight:
         win.addnstr(row, 0, current_log[l], x - 1)
-      row += 1
+        row += 1
+      if row > MAX_LINES:
+        break
 
     win.refresh()
 
@@ -165,6 +169,7 @@ def main(win):
                "'g':       Toggle global log interleaving",
                "'f':       Filer to sessions that match this string (incremental)",
                "'x':       Exclude sessions that match this string (incremental)",
+               "'o':       Only show matching lines",
                "'r':       Reset filters",
                "'m'        Include sessions with at least this many log lines",
                "'/':       Find session by ID",
@@ -204,6 +209,8 @@ def main(win):
     elif k == "x":
       pattern = read_string(win, "Exclude: ")
       set_exclude(win, pattern)
+    elif k == "o":
+      only_highlight = not only_highlight
     elif k == "m":
       val = read_string(win, "Min lines: ")
       try:
