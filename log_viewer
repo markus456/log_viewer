@@ -140,14 +140,19 @@ def main(win):
   set_keys(target_ids)
   MAX_LINES = y - 3 # One for newline, two for the status strings
   k = ' '
-  interleave = True
+  interleave_global = True
+  interleave_all = False
 
   while k not in ["q"]:
     session_id = keys[keypos]
     win.erase()
-    win.addstr(0, 0, "Press 'q' to quit, 'h' for help. (" + k + ") Interleave: " + ("ON" if interleave else "OFF"))
+    win.addstr(0, 0, "Press 'q' to quit, 'h' for help. (" + k + ") Interleave: " + ("ON" if interleave_global else "OFF"))
     win.addstr(1, 0, f"Sessions: {len(keys)} Current: " + ("Global" if session_id == "-1" else session_id))
-    if interleave and global_id in logs:
+    if interleave_all:
+      current_log = {}
+      for k in keys:
+        current_log.update(logs[k])
+    elif interleave_global and global_id in logs:
       current_log = logs[keys[keypos]] | logs[global_id]
     else:
       current_log = logs[keys[keypos]]
@@ -185,7 +190,8 @@ def main(win):
                "'x':       Exclude sessions that match this string (incremental)",
                "'o':       Only show matching lines",
                "'r':       Reset filters",
-               "'m'        Include sessions with at least this many log lines",
+               "'m'        Interleave output of all filtered sessions",
+               "'n'        Include sessions with at least this many log lines",
                "'/':       Find session by ID",
                "'q':       Quit the program",
                "",
@@ -229,7 +235,7 @@ def main(win):
       set_exclude(win, pattern)
     elif k == "o":
       only_highlight = not only_highlight
-    elif k == "m":
+    elif k == "n":
       val = read_string(win, "Min lines: ")
       try:
         set_min_lines(win, int(val))
@@ -239,7 +245,9 @@ def main(win):
       set_keys([])
       highlight = ""
     elif k == "g":
-      interleave = not interleave
+      interleave_global = not interleave_global
+    elif k == "m":
+      interleave_all = not interleave_all
     elif k == "/":
       sessions = read_string(win, "Find sessions: ")
       set_sessions(win, [s.strip() for s in sessions.split(",")])
