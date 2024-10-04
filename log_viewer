@@ -121,6 +121,7 @@ def main(win):
   use_colors = True
   color = curses.COLOR_YELLOW
   prefix_re = re.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}   ")
+  trace_re = re.compile("^[0-9]*[.][0-9]*: ")
 
   with open(sys.argv[1], errors="replace") as f:
     for line in f:
@@ -129,7 +130,7 @@ def main(win):
         win.addstr(0, 0, "Processing file '%s': %d/%d (%d%%)" % (sys.argv[1], real_linenum, total_lines, (real_linenum / total_lines) * 100.0))
         win.refresh()
 
-      if prefix_re.match(line):
+      if prefix_re.match(line) or trace_re.match(line):
         start = line.find("(")
         end = line.find(")")
         session_id = line[start + 1:end]
