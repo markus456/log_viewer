@@ -136,9 +136,12 @@ def main(win):
       if num_bytes > next_update:
         next_update = num_bytes + update_size
         bytes_per_sec = num_bytes / (time.time() - time_start)
+        data_left = total_bytes - num_bytes
+        time_left = data_left / bytes_per_sec
+        extra = ", complete in %ds" % (time_left) if time_left > 5 else ""
 
         win.clrtoeol()
-        win.addstr(0, 0, "Processing file '%s': %d MiB / %d MiB [%.01f MiB/s] (%.01f%%)" % (sys.argv[1], num_bytes / MiB, total_bytes / MiB, bytes_per_sec / MiB, int((num_bytes / total_bytes) * 1000.0) / 10.0))
+        win.addstr(0, 0, "Processing file '%s'%s: %d MiB / %d MiB [%.01f MiB/s] (%.01f%%)" % (sys.argv[1], extra, num_bytes / MiB, total_bytes / MiB, bytes_per_sec / MiB, int((num_bytes / total_bytes) * 1000.0) / 10.0))
         win.refresh()
 
       if prefix_re.match(line) or trace_re.match(line):
