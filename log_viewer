@@ -4,14 +4,16 @@ import sys
 import re
 import curses
 import mmap
+import os
+import time
 
-def count_lines(filename):
-  with open(filename, "r", errors="replace") as f:
-    return sum(1 for l in f)
+if len(sys.argv) <= 1:
+  print("Usage: log_viewer FILE [SESSION...]")
+  os._exit(1)
 
 logs = dict()
 target_ids = sys.argv[2:]
-total_lines = count_lines(sys.argv[1])
+total_bytes = os.stat(sys.argv[1]).st_size
 keys = []
 keypos = 0
 linepos = 0
@@ -25,6 +27,7 @@ def warning(win, msg):
   win.addstr(2, 4, "Press any key to continue")
   win.refresh()
   win.getkey()
+
 
 def set_keys(ids):
   global keypos, keys, linepos, logs
@@ -48,7 +51,7 @@ def set_match(win, pattern):
   else:
     warning(win, "No match")
 
-    
+
 def set_exclude(win, pattern):
   global keys, logs
   newkeys = []
@@ -114,34 +117,38 @@ def main(win):
   y, x = win.getmaxyx()
   win.erase()
   linenum = 0
-  real_linenum = 0
-  update_size = int(total_lines / 100)
+  update_size = int(total_bytes / 1000)
+  next_update = update_size
   global_id="-1"
   current_id = global_id
   use_colors = True
+  time_start = time.time()
   color = curses.COLOR_YELLOW
   prefix_re = re.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}   ")
   trace_re = re.compile("^[0-9]*[.][0-9]*: ")
+  session_re = re.compile("[(]([0-9]+)[)]")
+  MiB = 1048576
 
-  with open(sys.argv[1], errors="replace") as f:
-    for line in f:
-      real_linenum += 1
-      if real_linenum % update_size == 0:
-        win.addstr(0, 0, "Processing file '%s': %d/%d (%d%%)" % (sys.argv[1], real_linenum, total_lines, (real_linenum / total_lines) * 100.0))
+  with open(sys.argv[1], "rb") as f:
+    line = f.readline().decode("utf8")
+    while line:
+      num_bytes = f.tell()
+      if num_bytes > next_update:
+        next_update = num_bytes + update_size
+        bytes_per_sec = num_bytes / (time.time() - time_start)
+
+        win.clrtoeol()
+        win.addstr(0, 0, "Processing file '%s': %d MiB / %d MiB [%.01f MiB/s] (%.01f%%)" % (sys.argv[1], num_bytes / MiB, total_bytes / MiB, bytes_per_sec / MiB, int((num_bytes / total_bytes) * 1000.0) / 10.0))
         win.refresh()
 
       if prefix_re.match(line) or trace_re.match(line):
-        start = line.find("(")
-        end = line.find(")")
-        session_id = line[start + 1:end]
-        if session_id.isdigit():
-          current_id = session_id
-        else:
-          current_id = global_id
+        ses_id = session_re.search(line, 0, 80)
+        current_id = ses_id[1] if ses_id else global_id
 
       for chunk in range(0, len(line), x - 1):
         linenum += 1
         logs.setdefault(current_id, dict())[linenum] = line[chunk : chunk + x - 1]
+      line = f.readline().decode("utf8")
 
   set_keys(target_ids)
   MAX_LINES = y - 3 # One for newline, two for the status strings
